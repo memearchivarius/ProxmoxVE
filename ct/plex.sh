@@ -69,7 +69,7 @@ function update_script() {
       git clone https://github.com/ZeroQI/Hama.bundle.git "$PLUGINS_DIR/Hama.bundle"
     else
       cd "$PLUGINS_DIR/Hama.bundle"
-      git pull
+      git -c safe.directory="$PLUGINS_DIR/Hama.bundle" pull
     fi
 
     chown -R plex:plex "$PLUGINS_DIR"
