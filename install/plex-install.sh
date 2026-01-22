@@ -54,6 +54,11 @@ if [ ! -d "$PLUGINS_DIR/Hama.bundle" ]; then
   git clone https://github.com/memearchivarius/Hama.bundle.git "$PLUGINS_DIR/Hama.bundle"
 else
   git config --global --add safe.directory "$PLUGINS_DIR/Hama.bundle" 2>/dev/null || true
+  # Ensure remote URL is correct
+  CURRENT_URL=$(git -C "$PLUGINS_DIR/Hama.bundle" remote get-url origin 2>/dev/null || echo "")
+  if [[ "$CURRENT_URL" != *"memearchivarius/Hama.bundle"* ]]; then
+    git -C "$PLUGINS_DIR/Hama.bundle" remote set-url origin https://github.com/memearchivarius/Hama.bundle.git
+  fi
   git -C "$PLUGINS_DIR/Hama.bundle" pull || {
     rm -rf "$PLUGINS_DIR/Hama.bundle"
     git clone https://github.com/memearchivarius/Hama.bundle.git "$PLUGINS_DIR/Hama.bundle"
