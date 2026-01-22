@@ -53,8 +53,7 @@ mkdir -p "$PLUGINS_DIR"
 if [ ! -d "$PLUGINS_DIR/Hama.bundle" ]; then
   git clone https://github.com/ZeroQI/Hama.bundle.git "$PLUGINS_DIR/Hama.bundle"
 else
-  git config --global --add safe.directory "$PLUGINS_DIR/Hama.bundle" 2>/dev/null || true
-  git -C "$PLUGINS_DIR/Hama.bundle" -c safe.directory="$PLUGINS_DIR/Hama.bundle" pull
+  sudo -u plex git -C "$PLUGINS_DIR/Hama.bundle" pull
 fi
 
 chown -R plex:plex "$PLUGINS_DIR"
