@@ -49,12 +49,19 @@ function update_script() {
     exit
   fi
   if [ "$UPD" == "3" ]; then
-    msg_info "Updating Plex Plugins (Hama + Absolute Series Scanner)"
+    msg_info "Updating Plex Plugin (Hama) and Scanner (Absolute Series Scanner)"
     if ! command -v git &> /dev/null; then
       $STD apt update
       $STD apt install -y git
     fi
 
+    # Install libxslt if not already installed
+    if ! dpkg -l | grep -q libxslt1.1; then
+      $STD apt update
+      $STD apt install -y libxslt1.1 python3-lxml
+    fi
+
+    # Update Hama.bundle plugin
     PLUGINS_DIR="/var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-ins"
     mkdir -p "$PLUGINS_DIR"
 
@@ -65,16 +72,19 @@ function update_script() {
       git pull
     fi
 
-    if [ ! -d "$PLUGINS_DIR/Absolute-Series-Scanner.bundle" ]; then
-      git clone https://github.com/ZeroQI/Absolute-Series-Scanner.git "$PLUGINS_DIR/Absolute-Series-Scanner.bundle"
-    else
-      cd "$PLUGINS_DIR/Absolute-Series-Scanner.bundle"
-      git pull
-    fi
-
     chown -R plex:plex "$PLUGINS_DIR"
+
+    # Update Absolute Series Scanner (scanner, not a plugin)
+    SCANNERS_DIR="/var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Scanners/Series"
+    mkdir -p "$SCANNERS_DIR"
+    SCANNER_FILE="$SCANNERS_DIR/Absolute Series Scanner.py"
+
+    curl -fsSL "https://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/Scanners/Series/Absolute%20Series%20Scanner.py" -o "$SCANNER_FILE"
+    chmod +x "$SCANNER_FILE"
+    chown -R plex:plex "/var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Scanners"
+
     systemctl restart plexmediaserver
-    msg_ok "Updated Plex Plugins successfully!"
+    msg_ok "Updated Plex Plugin and Scanner successfully!"
     exit
   fi
 }
