@@ -36,6 +36,33 @@ else
 fi
 msg_ok "Installed Plex Media Server"
 
+msg_info "Installing Plex Plugins (Hama + Absolute Series Scanner)"
+if ! command -v git &> /dev/null; then
+  $STD apt update
+  $STD apt install -y git
+fi
+
+PLUGINS_DIR="/var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-ins"
+mkdir -p "$PLUGINS_DIR"
+
+if [ ! -d "$PLUGINS_DIR/Hama.bundle" ]; then
+  git clone https://github.com/ZeroQI/Hama.bundle.git "$PLUGINS_DIR/Hama.bundle"
+else
+  cd "$PLUGINS_DIR/Hama.bundle"
+  git pull
+fi
+
+if [ ! -d "$PLUGINS_DIR/Absolute-Series-Scanner.bundle" ]; then
+  git clone https://github.com/ZeroQI/Absolute-Series-Scanner.git "$PLUGINS_DIR/Absolute-Series-Scanner.bundle"
+else
+  cd "$PLUGINS_DIR/Absolute-Series-Scanner.bundle"
+  git pull
+fi
+
+chown -R plex:plex "$PLUGINS_DIR"
+systemctl restart plexmediaserver
+msg_ok "Installed Plex Plugins"
+
 motd_ssh
 customize
 cleanup_lxc

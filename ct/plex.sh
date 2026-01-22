@@ -29,9 +29,10 @@ function update_script() {
     msg_error "No ${APP} Installation Found!"
     exit
   fi
-  UPD=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "SUPPORT" --radiolist --cancel-button Exit-Script "Spacebar = Select \nplexupdate info >> https://github.com/mrworf/plexupdate" 10 59 2 \
+  UPD=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "SUPPORT" --radiolist --cancel-button Exit-Script "Spacebar = Select \nplexupdate info >> https://github.com/mrworf/plexupdate" 10 59 3 \
     "1" "Update LXC" ON \
     "2" "Install plexupdate" OFF \
+    "3" "Update Plugins (Hama + ASS)" OFF \
     3>&1 1>&2 2>&3)
   if [ "$UPD" == "1" ]; then
     msg_info "Updating ${APP} LXC"
@@ -45,6 +46,35 @@ function update_script() {
     set +e
     bash -c "$(curl -fsSL https://raw.githubusercontent.com/mrworf/plexupdate/master/extras/installer.sh)"
     msg_ok "Updated successfully!"
+    exit
+  fi
+  if [ "$UPD" == "3" ]; then
+    msg_info "Updating Plex Plugins (Hama + Absolute Series Scanner)"
+    if ! command -v git &> /dev/null; then
+      $STD apt update
+      $STD apt install -y git
+    fi
+
+    PLUGINS_DIR="/var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-ins"
+    mkdir -p "$PLUGINS_DIR"
+
+    if [ ! -d "$PLUGINS_DIR/Hama.bundle" ]; then
+      git clone https://github.com/ZeroQI/Hama.bundle.git "$PLUGINS_DIR/Hama.bundle"
+    else
+      cd "$PLUGINS_DIR/Hama.bundle"
+      git pull
+    fi
+
+    if [ ! -d "$PLUGINS_DIR/Absolute-Series-Scanner.bundle" ]; then
+      git clone https://github.com/ZeroQI/Absolute-Series-Scanner.git "$PLUGINS_DIR/Absolute-Series-Scanner.bundle"
+    else
+      cd "$PLUGINS_DIR/Absolute-Series-Scanner.bundle"
+      git pull
+    fi
+
+    chown -R plex:plex "$PLUGINS_DIR"
+    systemctl restart plexmediaserver
+    msg_ok "Updated Plex Plugins successfully!"
     exit
   fi
 }
